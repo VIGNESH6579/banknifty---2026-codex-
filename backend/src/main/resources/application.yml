@@ -1,0 +1,42 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+app:
+  market:
+    symbol: BANKNIFTY
+    trading-symbol: BANKNIFTY
+    token: 26009
+    candle-capacity: 50
+    reconnect-delay: 5s
+    duplicate-signal-cooldown: 10m
+    price-scale: 100.0
+  notification:
+    ntfy-topic: ${NTFY_TOPIC:}
+
+logging:
+  level:
+    root: INFO
+    com.banknifty.signal: DEBUG
