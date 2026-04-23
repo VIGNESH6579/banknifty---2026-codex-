@@ -4,6 +4,7 @@ Full-stack BANKNIFTY-only signal platform with:
 
 - Spring Boot backend
 - PostgreSQL persistence
+- Flyway migrations
 - Angel One SmartAPI market stream
 - WebSocket broadcast to frontend
 - React/Vite realtime dashboard
@@ -101,11 +102,20 @@ Important: the Angel One credentials are not stored in the repo. Render will pro
 - Publish directory: `dist`
 - Set `VITE_API_BASE_URL` to the Render backend URL
 
+### Docker
+
+This repo also includes:
+
+- [backend/Dockerfile](/C:/Users/Vigneshwaran.G/Documents/Codex/2026-04-23-use-this-repository-https-github-com-2/backend/Dockerfile)
+- [frontend/Dockerfile](/C:/Users/Vigneshwaran.G/Documents/Codex/2026-04-23-use-this-repository-https-github-com-2/frontend/Dockerfile)
+
+So you can deploy with containers later if you want to move beyond the current Render blueprint.
+
 ## Realtime flow
 
 1. SmartAPI WebSocket subscribes only to BANKNIFTY (`26009`)
 2. Incoming ticks are aggregated into 1-minute OHLC candles
-3. Every minute the scheduler finalizes candles and evaluates the SMC breakout strategy
+3. Every minute the scheduler finalizes candles and evaluates the tightened SMC breakout strategy
 4. Fresh signals are stored in PostgreSQL, pushed to ntfy, and broadcast to `/topic/market`
 5. React dashboard updates live through `/ws/market`
 
@@ -113,5 +123,5 @@ Important: the Angel One credentials are not stored in the repo. Render will pro
 
 - `ANGEL_TOTP_SECRET` is used to generate the live TOTP code at runtime.
 - The backend only tracks `BANKNIFTY`.
-- Schema is initialized from [backend/src/main/resources/schema.sql](/C:/Users/Vigneshwaran.G/Documents/Codex/2026-04-23-use-this-repository-https-github-com-2/backend/src/main/resources/schema.sql).
+- Schema is managed by Flyway from [backend/src/main/resources/db/migration/V1__create_signals_table.sql](/C:/Users/Vigneshwaran.G/Documents/Codex/2026-04-23-use-this-repository-https-github-com-2/backend/src/main/resources/db/migration/V1__create_signals_table.sql).
 - The Angel One SDK is vendored as a local Maven artifact under [backend/local-maven-repo](/C:/Users/Vigneshwaran.G/Documents/Codex/2026-04-23-use-this-repository-https-github-com-2/backend/local-maven-repo) because Angel's published Java dependency is not available from Maven Central.

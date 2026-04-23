@@ -14,9 +14,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  sql:
-    init:
-      mode: always
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 management:
   endpoints:
