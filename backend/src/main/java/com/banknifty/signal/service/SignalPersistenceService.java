@@ -1,64 +1,65 @@
 package com.banknifty.signal.service;
 
 import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 
 import com.banknifty.signal.config.MarketProperties;
 import com.banknifty.signal.dto.SignalDto;
-import com.banknifty.signal.model.SignalEntity;
 import com.banknifty.signal.model.SignalType;
 import com.banknifty.signal.model.StrategySignal;
-import com.banknifty.signal.repository.SignalRepository;
 
 @Service
 public class SignalPersistenceService {
 
-    private final SignalRepository signalRepository;
     private final MarketProperties marketProperties;
+    private final AtomicLong ids = new AtomicLong(0);
+    private final Deque<SignalDto> signals = new ArrayDeque<>();
 
-    public SignalPersistenceService(SignalRepository signalRepository, MarketProperties marketProperties) {
-        this.signalRepository = signalRepository;
+    public SignalPersistenceService(MarketProperties marketProperties) {
         this.marketProperties = marketProperties;
     }
 
-    public Optional<SignalDto> saveIfFresh(StrategySignal strategySignal) {
-        Optional<SignalEntity> latestSameType = signalRepository.findTopBySymbolAndTypeOrderByCreatedAtDesc(
-                strategySignal.symbol(), strategySignal.type());
+    public synchronized Optional<SignalDto> saveIfFresh(StrategySignal strategySignal) {
+        Optional<SignalDto> latestSameType = signals.stream()
+                .filter(signal -> signal.symbol().equals(strategySignal.symbol()))
+                .filter(signal -> signal.type() == strategySignal.type())
+                .findFirst();
 
         if (latestSameType.isPresent()) {
-            SignalEntity entity = latestSameType.get();
+            SignalDto signal = latestSameType.get();
             Instant cutoff = Instant.now().minus(marketProperties.getDuplicateSignalCooldown());
-            boolean recent = entity.getCreatedAt().isAfter(cutoff);
-            boolean nearEntry = Math.abs(entity.getEntryPrice() - strategySignal.entry()) <= 5.0;
+            boolean recent = signal.timestamp().isAfter(cutoff);
+            boolean nearEntry = Math.abs(signal.entry() - strategySignal.entry()) <= 5.0;
             if (recent && nearEntry) {
                 return Optional.empty();
             }
         }
 
-        SignalEntity entity = new SignalEntity();
-        entity.setSymbol(strategySignal.symbol());
-        entity.setType(strategySignal.type());
-        entity.setEntryPrice(strategySignal.entry());
-        entity.setStopLoss(strategySignal.stopLoss());
-        entity.setTarget(strategySignal.target());
-        entity.setConfidence(strategySignal.confidence());
-        entity.setExpiryTime(strategySignal.expiry());
+        SignalDto signal = SignalDto.fromStrategySignal(ids.incrementAndGet(), strategySignal);
+        signals.addFirst(signal);
+        while (signals.size() > 20) {
+            signals.removeLast();
+        }
 
-        return Optional.of(SignalDto.fromEntity(signalRepository.save(entity)));
+        return Optional.of(signal);
     }
 
-    public List<SignalDto> getRecentSignals(String symbol) {
-        return signalRepository.findTop20BySymbolOrderByCreatedAtDesc(symbol).stream()
-                .map(SignalDto::fromEntity)
+    public synchronized List<SignalDto> getRecentSignals(String symbol) {
+        return signals.stream()
+                .filter(signal -> signal.symbol().equals(symbol))
                 .toList();
     }
 
-    public SignalDto getLatestSignal(String symbol) {
-        return signalRepository.findTopBySymbolOrderByCreatedAtDesc(symbol)
-                .map(SignalDto::fromEntity)
+    public synchronized SignalDto getLatestSignal(String symbol) {
+        return signals.stream()
+                .filter(signal -> signal.symbol().equals(symbol))
+                .findFirst()
                 .orElse(null);
     }
 }

@@ -3,8 +3,6 @@
 Full-stack BANKNIFTY-only signal platform with:
 
 - Spring Boot backend
-- PostgreSQL persistence
-- Flyway migrations
 - Angel One SmartAPI market stream
 - WebSocket broadcast to frontend
 - React/Vite realtime dashboard
@@ -12,7 +10,7 @@ Full-stack BANKNIFTY-only signal platform with:
 
 ## Stack
 
-- Backend: Spring Boot 3.4.15, Java 21, Maven, PostgreSQL, STOMP WebSocket
+- Backend: Spring Boot 3.5.12, Java 21, Maven, STOMP WebSocket
 - Frontend: React 19.2, Vite 8
 
 ## Required environment variables
@@ -23,9 +21,6 @@ Backend:
 - `ANGEL_API_KEY`
 - `ANGEL_PASSWORD`
 - `ANGEL_TOTP_SECRET`
-- `DB_URL`
-- `DB_USERNAME`
-- `DB_PASSWORD`
 
 Optional:
 
@@ -76,14 +71,13 @@ npm run dev
 - Root directory: `backend`
 - Build command: `./mvnw clean package -DskipTests`
 - Start command: `java -jar target/banknifty-signal-backend-0.0.1-SNAPSHOT.jar`
-- Add all backend environment variables in Render dashboard
+- Add Angel and ntfy environment variables in Render dashboard
 
 ### Render via `render.yaml`
 
 This repo now includes [render.yaml](/C:/Users/Vigneshwaran.G/Documents/Codex/2026-04-23-use-this-repository-https-github-com-2/render.yaml) with:
 
 - a Java web service for the backend
-- a Render PostgreSQL database
 - a static site for the frontend
 - secret env-var prompts for:
   - `ANGEL_CLIENT_ID`
@@ -116,12 +110,12 @@ So you can deploy with containers later if you want to move beyond the current R
 1. SmartAPI WebSocket subscribes only to BANKNIFTY (`26009`)
 2. Incoming ticks are aggregated into 1-minute OHLC candles
 3. Every minute the scheduler finalizes candles and evaluates the tightened SMC breakout strategy
-4. Fresh signals are stored in PostgreSQL, pushed to ntfy, and broadcast to `/topic/market`
+4. Fresh signals are stored in memory, pushed to ntfy, and broadcast to `/topic/market`
 5. React dashboard updates live through `/ws/market`
 
 ## Notes
 
 - `ANGEL_TOTP_SECRET` is used to generate the live TOTP code at runtime.
 - The backend only tracks `BANKNIFTY`.
-- Schema is managed by Flyway from [backend/src/main/resources/db/migration/V1__create_signals_table.sql](/C:/Users/Vigneshwaran.G/Documents/Codex/2026-04-23-use-this-repository-https-github-com-2/backend/src/main/resources/db/migration/V1__create_signals_table.sql).
+- Recent signals are held in memory only, so they reset on restart or redeploy.
 - The Angel One SDK is vendored as a local Maven artifact under [backend/local-maven-repo](/C:/Users/Vigneshwaran.G/Documents/Codex/2026-04-23-use-this-repository-https-github-com-2/backend/local-maven-repo) because Angel's published Java dependency is not available from Maven Central.

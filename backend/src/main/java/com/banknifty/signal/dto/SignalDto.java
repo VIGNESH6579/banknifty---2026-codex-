@@ -3,9 +3,9 @@ package com.banknifty.signal.dto;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
-import com.banknifty.signal.model.SignalEntity;
 import com.banknifty.signal.model.SignalStatus;
 import com.banknifty.signal.model.SignalType;
+import com.banknifty.signal.model.StrategySignal;
 
 public record SignalDto(
         Long id,
@@ -19,18 +19,18 @@ public record SignalDto(
         SignalStatus status,
         Instant timestamp
 ) {
-    public static SignalDto fromEntity(SignalEntity entity) {
+    public static SignalDto fromStrategySignal(Long id, StrategySignal signal) {
         return new SignalDto(
-                entity.getId(),
-                entity.getSymbol(),
-                entity.getType(),
-                entity.getEntryPrice(),
-                entity.getStopLoss(),
-                entity.getTarget(),
-                entity.getConfidence(),
-                entity.getExpiryTime(),
-                entity.getStatus(),
-                entity.getCreatedAt()
+                id,
+                signal.symbol(),
+                signal.type(),
+                signal.entry(),
+                signal.stopLoss(),
+                signal.target(),
+                signal.confidence(),
+                signal.expiry(),
+                SignalStatus.OPEN,
+                signal.timestamp()
         );
     }
 }
