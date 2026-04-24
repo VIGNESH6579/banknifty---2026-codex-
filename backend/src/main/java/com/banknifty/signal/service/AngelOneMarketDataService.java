@@ -6,11 +6,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -66,9 +67,9 @@ public class AngelOneMarketDataService {
         this.taskScheduler = taskScheduler;
     }
 
-    @PostConstruct
-    public void connect() {
-        scheduleConnect(Instant.now());
+    @EventListener(ApplicationReadyEvent.class)
+    public void connectAfterStartup() {
+        scheduleConnect(Instant.now().plusSeconds(5));
     }
 
     @PreDestroy
