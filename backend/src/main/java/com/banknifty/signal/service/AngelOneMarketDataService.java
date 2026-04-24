@@ -69,6 +69,10 @@ public class AngelOneMarketDataService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void connectAfterStartup() {
+        if (!marketProperties.isStreamEnabled()) {
+            log.info("Market stream disabled via configuration");
+            return;
+        }
         scheduleConnect(Instant.now().plusSeconds(5));
     }
 

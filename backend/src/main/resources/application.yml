@@ -17,6 +17,7 @@ app:
     trading-symbol: BANKNIFTY
     token: 26009
     candle-capacity: 50
+    stream-enabled: ${MARKET_STREAM_ENABLED:true}
     reconnect-delay: 5s
     duplicate-signal-cooldown: 10m
     price-scale: 100.0

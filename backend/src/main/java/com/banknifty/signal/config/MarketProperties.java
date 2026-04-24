@@ -11,6 +11,7 @@ public class MarketProperties {
     private String tradingSymbol = "BANKNIFTY";
     private String token = "26009";
     private int candleCapacity = 50;
+    private boolean streamEnabled = true;
     private Duration reconnectDelay = Duration.ofSeconds(5);
     private Duration duplicateSignalCooldown = Duration.ofMinutes(10);
     private double priceScale = 100.0;
@@ -45,6 +46,14 @@ public class MarketProperties {
 
     public void setCandleCapacity(int candleCapacity) {
         this.candleCapacity = candleCapacity;
+    }
+
+    public boolean isStreamEnabled() {
+        return streamEnabled;
+    }
+
+    public void setStreamEnabled(boolean streamEnabled) {
+        this.streamEnabled = streamEnabled;
     }
 
     public Duration getReconnectDelay() {
